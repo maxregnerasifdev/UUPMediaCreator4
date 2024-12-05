@@ -24,47 +24,34 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnifiedUpdatePlatform.Services.WindowsUpdate;
 
-namespace UUPDownload.DownloadRequest
+namespace UUPDownload.DownloadRequest;
+
+public class UpdateScan(
+    UpdateData updateData,
+    BuildTargets.EditionPlanningWithLanguage[] targets,
+    MachineType architecture,
+    string buildString,
+    string title,
+    string description)
 {
-    public class UpdateScan
+    public UpdateData UpdateData { get; init; } = updateData;
+    public BuildTargets.EditionPlanningWithLanguage[] Targets { get; init; } = targets;
+    public MachineType Architecture { get; init; } = architecture;
+    public string BuildString { get; init; } = buildString;
+    public string Title { get; init; } = title;
+    public string Description { get; init; } = description;
+
+    public string Serialize()
     {
-        public UpdateData UpdateData
-        {
-            get; set;
-        }
-        public BuildTargets.EditionPlanningWithLanguage[] Targets
-        {
-            get; set;
-        }
-        public MachineType Architecture
-        {
-            get; set;
-        }
-        public string BuildString
-        {
-            get; set;
-        }
-        public string Title
-        {
-            get; set;
-        }
-        public string Description
-        {
-            get; set;
-        }
+        var xmlSerializer = new XmlSerializer(typeof(UpdateScan));
+        var ns = new XmlSerializerNamespaces([
+            new("s", "http://www.w3.org/2003/05/soap-envelope"),
+            new("a", "http://www.w3.org/2005/08/addressing")
+        ]);
 
-        public string Serialize()
-        {
-            XmlSerializer xmlSerializer = new(typeof(UpdateScan));
-
-            XmlSerializerNamespaces ns = new();
-            ns.Add("s", "http://www.w3.org/2003/05/soap-envelope");
-            ns.Add("a", "http://www.w3.org/2005/08/addressing");
-
-            using StringWriter stringWriter = new();
-            using XmlWriter xmlWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings { Indent = true });
-            xmlSerializer.Serialize(xmlWriter, this, ns);
-            return stringWriter.ToString().Replace("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n", "");
-        }
+        using var stringWriter = new StringWriter();
+        using var xmlWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings { Indent = true });
+        xmlSerializer.Serialize(xmlWriter, this, ns);
+        return stringWriter.ToString().Replace("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n", "");
     }
 }
